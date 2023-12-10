@@ -1,11 +1,5 @@
-prendido = 0
-numSer = 0
-estado = ""
-objeto = 0
-
 def on_bluetooth_connected():
     images.icon_image(IconNames.YES).show_image(0)
-    bluetooth.start_uart_service()
 bluetooth.on_bluetooth_connected(on_bluetooth_connected)
 
 def on_bluetooth_disconnected():
@@ -25,14 +19,8 @@ def Encender():
     prendido = 1
     cuteBot.color_light(cuteBot.RGBLights.ALL, 0x00ffff)
     return prendido
-def Velocidad():
-    global numSer
-    numSer = parse_float(estado)
-    if prendido == 0:
-        cuteBot.stopcar()
-    return numSer
 
-def on_forever():
+def on_uart_data_received():
     global estado, objeto
     estado = bluetooth.uart_read_until(serial.delimiters(Delimiters.NEW_LINE))
     objeto = cuteBot.ultrasonic(cuteBot.SonarUnit.CENTIMETERS)
@@ -61,7 +49,6 @@ def on_forever():
         cuteBot.move_time(cuteBot.Direction.LEFT, numSer, 1)
         cuteBot.color_light(cuteBot.RGBLights.RGB_L, 0xffff00)
     if objeto <= 15:
-        cuteBot.stopcar()
         cuteBot.color_light(cuteBot.RGBLights.ALL, 0xff0000)
         music.play(music.create_sound_expression(WaveShape.SQUARE,
                 4322,
@@ -73,4 +60,21 @@ def on_forever():
                 InterpolationCurve.CURVE),
             music.PlaybackMode.UNTIL_DONE)
     bluetooth.uart_write_number(objeto)
-basic.forever(on_forever)
+bluetooth.on_uart_data_received(serial.delimiters(Delimiters.NEW_LINE),
+    on_uart_data_received)
+
+def Velocidad():
+    global numSer
+    numSer = parse_float(estado)
+    if prendido == 0:
+        cuteBot.stopcar()
+    return numSer
+numSer = 0
+objeto = 0
+estado = ""
+prendido = 0
+bluetooth.start_accelerometer_service()
+bluetooth.start_io_pin_service()
+bluetooth.start_uart_service()
+bluetooth.start_led_service()
+bluetooth.set_transmit_power(1)

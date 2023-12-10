@@ -1,10 +1,5 @@
-let estado = ""
-let objeto = 0
-let numSer = 0
-let prendido = 0
 bluetooth.onBluetoothConnected(function () {
     images.iconImage(IconNames.Yes).showImage(0)
-    bluetooth.startUartService()
 })
 bluetooth.onBluetoothDisconnected(function () {
     images.iconImage(IconNames.No).showImage(0)
@@ -60,7 +55,12 @@ function Velocidad () {
     }
     return numSer
 }
-basic.forever(function () {
-    bluetooth.startUartService()
-    bluetooth.setTransmitPower(1)
-})
+let prendido = 0
+let numSer = 0
+let objeto = 0
+let estado = ""
+bluetooth.startAccelerometerService()
+bluetooth.startIOPinService()
+bluetooth.startUartService()
+bluetooth.startLEDService()
+bluetooth.setTransmitPower(1)
