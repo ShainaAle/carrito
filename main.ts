@@ -1,8 +1,41 @@
-let prendido = 0
-let estado = ""
-let vel = 0
-let numSer = 0
-let objeto = 0
+bluetooth.onBluetoothConnected(function () {
+    images.iconImage(IconNames.Yes).showImage(0)
+})
+bluetooth.onBluetoothDisconnected(function () {
+    images.iconImage(IconNames.No).showImage(0)
+    cuteBot.stopcar()
+})
+bluetooth.onUartDataReceived(serial.delimiters(Delimiters.NewLine), function () {
+    estado = bluetooth.uartReadUntil(serial.delimiters(Delimiters.NewLine))
+    objeto = cuteBot.ultrasonic(cuteBot.SonarUnit.Centimeters)
+    if (estado == "encender") {
+        Encender()
+    }
+    if (estado == "apagar") {
+        Apagar()
+    }
+    Velocidad()
+    if (estado == "arriba") {
+        cuteBot.moveTime(cuteBot.Direction.forward, numSer, 1)
+    }
+    if (estado == "abajo") {
+        cuteBot.moveTime(cuteBot.Direction.backward, numSer, 1)
+        music.play(music.createSoundExpression(WaveShape.Square, 2672, 1542, 255, 245, 1000, SoundExpressionEffect.Vibrato, InterpolationCurve.Logarithmic), music.PlaybackMode.UntilDone)
+    }
+    if (estado == "derecha") {
+        cuteBot.moveTime(cuteBot.Direction.right, numSer, 1)
+        cuteBot.colorLight(cuteBot.RGBLights.RGB_R, 0xffff00)
+    }
+    if (estado == "izquierda") {
+        cuteBot.moveTime(cuteBot.Direction.left, numSer, 1)
+        cuteBot.colorLight(cuteBot.RGBLights.RGB_L, 0xffff00)
+    }
+    if (objeto <= 15) {
+        cuteBot.colorLight(cuteBot.RGBLights.ALL, 0xff0000)
+        music.play(music.createSoundExpression(WaveShape.Square, 4322, 4451, 255, 255, 5000, SoundExpressionEffect.Vibrato, InterpolationCurve.Curve), music.PlaybackMode.UntilDone)
+    }
+    bluetooth.uartWriteNumber(objeto)
+})
 function Apagar () {
     basic.clearScreen()
     prendido = 0
@@ -16,48 +49,18 @@ function Encender () {
     return prendido
 }
 function Velocidad () {
+    numSer = parseFloat(estado)
     if (prendido == 0) {
         cuteBot.stopcar()
-        vel = 0
-    } else if (estado.includes("Velocidad")) {
-        numSer = parseFloat(estado.substr(11, 15))
-        vel = numSer
     }
-    return vel
+    return numSer
 }
-basic.forever(function () {
-    estado = serial.readUntil(serial.delimiters(Delimiters.NewLine))
-    objeto = cuteBot.ultrasonic(cuteBot.SonarUnit.Centimeters)
-    serial.writeString("" + objeto + " \n")
-    if (estado == "encender") {
-        Encender()
-    }
-    if (estado == "apagar") {
-        Apagar()
-    }
-    Velocidad()
-    if (estado == "arriba") {
-        cuteBot.colorLight(cuteBot.RGBLights.ALL, 0xffffff)
-        cuteBot.moveTime(cuteBot.Direction.forward, vel, 0.1)
-    }
-    if (estado == "abajo") {
-        cuteBot.moveTime(cuteBot.Direction.backward, vel, 0.1)
-        cuteBot.colorLight(cuteBot.RGBLights.ALL, 0xff0080)
-        music.play(music.createSoundExpression(WaveShape.Square, 2672, 1542, 255, 245, 100, SoundExpressionEffect.Vibrato, InterpolationCurve.Logarithmic), music.PlaybackMode.UntilDone)
-    }
-    if (estado == "derecha") {
-        cuteBot.moveTime(cuteBot.Direction.right, vel, 0.1)
-        cuteBot.colorLight(cuteBot.RGBLights.RGB_L, 0xffffff)
-        cuteBot.colorLight(cuteBot.RGBLights.RGB_R, 0xffff00)
-    }
-    if (estado == "izquierda") {
-        cuteBot.moveTime(cuteBot.Direction.left, vel, 0.1)
-        cuteBot.colorLight(cuteBot.RGBLights.RGB_R, 0xffffff)
-        cuteBot.colorLight(cuteBot.RGBLights.RGB_L, 0xffff00)
-    }
-    if (objeto <= 10) {
-        objeto = cuteBot.ultrasonic(cuteBot.SonarUnit.Centimeters)
-        cuteBot.colorLight(cuteBot.RGBLights.ALL, 0xff0000)
-        music.play(music.createSoundExpression(WaveShape.Square, 4322, 4451, 255, 255, 100, SoundExpressionEffect.Vibrato, InterpolationCurve.Curve), music.PlaybackMode.UntilDone)
-    }
-})
+let prendido = 0
+let numSer = 0
+let objeto = 0
+let estado = ""
+bluetooth.startAccelerometerService()
+bluetooth.startIOPinService()
+bluetooth.startUartService()
+bluetooth.startLEDService()
+bluetooth.setTransmitPower(1)
